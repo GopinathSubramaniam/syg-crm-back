@@ -32,7 +32,7 @@ public class Task extends MasterEntity {
 	private Date endDate;
 
 	/**
-	 * 0 - Low, 1 - Medium, 2 - high, 3 - Immediate
+	 * 0 - Low, 1 - Medium, 2 - High, 3 - Immediate
 	 */
 	@Column(length = 1)
 	private String priority;

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.syg.crm.dto.AppDTO;
+import com.syg.crm.dto.TaskDTO;
 import com.syg.crm.model.Task;
 import com.syg.crm.service.AppService;
 import com.syg.crm.service.TaskService;
@@ -47,6 +49,15 @@ public class TaskAdapter {
 
 		AppDTO appDTO = appService.getLoggedInUser(auth);
 		PageRes res = taskService.findAll(appDTO, perPage, pageNo, searchTxt, status, priority, startDate, endDate);
+		return res;
+	}
+	
+	@GetMapping(path="/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public Res findOne(@RequestHeader(value = "auth") String auth, @PathVariable Long id) {
+		AppDTO appDTO = appService.getLoggedInUser(auth);
+		TaskDTO t = taskService.findOne(appDTO, id);
+		Res res = new Res();
+		res.setData(t);
 		return res;
 	}
 

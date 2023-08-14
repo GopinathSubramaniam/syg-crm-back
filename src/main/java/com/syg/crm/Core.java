@@ -1,23 +1,15 @@
 package com.syg.crm;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.tomcat.util.json.JSONParser;
-
-import com.fasterxml.jackson.databind.JsonNode;
+import com.syg.crm.model.User;
+import com.syg.crm.util.Util;
 
 public class Core {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm z");
-		String startDate = simpleDateFormat.format(new Date());
+		User u = new User();
+		u.setEmail("gopiwrld@gmail.com");
 		
-		System.out.println(startDate);
+		System.out.println(Util.toString(u));
 	}
 }

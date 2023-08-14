@@ -1,5 +1,6 @@
 package com.syg.crm.service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -10,8 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.syg.crm.dto.AppDTO;
+import com.syg.crm.dto.TaskDTO;
 import com.syg.crm.enums.SeqType;
 import com.syg.crm.enums.UserType;
+import com.syg.crm.model.Lead;
 import com.syg.crm.model.Task;
 import com.syg.crm.repository.TaskRepository;
 import com.syg.crm.util.PageRes;
@@ -25,6 +28,9 @@ public class TaskService {
 
 	@Autowired
 	private TaskRepository taskRepository;
+	
+	@Autowired
+	private LeadService leadService;
 
 	public Task create(AppDTO appDTO, Task task) {
 		Task t = new Task();
@@ -39,7 +45,7 @@ public class TaskService {
 			t.setPriority(task.getPriority());
 			t.setStatus(task.getStatus());
 			t.setLeadIds(task.getLeadIds());
-			
+
 			task = taskRepository.saveAndFlush(t);
 		} else {
 			task.setTaskNum(appService.getSeqNum(SeqType.TA));
@@ -74,6 +80,27 @@ public class TaskService {
 		res = new PageRes(page);
 
 		return res;
+	}
+
+	public TaskDTO findOne(AppDTO appDto, Long id) {
+		TaskDTO dto = new TaskDTO();
+		
+		Task task = taskRepository.findById(id).get();
+		dto.setTask(task);
+		
+		// <> Get leads and set leads in task list
+		if(task.getLeadIds() != null) {
+			String[] leadStrArr = task.getLeadIds().split(",");
+			List<Long> leadIds = new ArrayList<>();
+			for (String leadId : leadStrArr) {
+				leadIds.add(Long.valueOf(leadId));
+			}
+			List<Lead> leads = leadService.findAllByLeadIds(leadIds);
+			dto.setLeads(leads);
+		}
+		// </> Get leads and set leads in task list
+		
+		return dto;
 	}
 
 	public void deleteInBatch(List<Long> ids) {

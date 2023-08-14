@@ -4,6 +4,10 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.syg.crm.enums.LeadStatus;
+
 public class Util {
 
 	public static String UPLOAD_MEDIA_FOLDER = "/media";
@@ -33,6 +37,23 @@ public class Util {
 		}
 
 		return formattedDate;
+	}
+
+	public static String toString(Object obj) throws Exception {
+		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+		String json = ow.writeValueAsString(obj);
+		return json;
+	}
+
+	public static String getLeadStatusAbbr(LeadStatus status) {
+		String val = "New";
+		if (LeadStatus.O.equals(status)) {
+			val = "Own";
+		} else if (LeadStatus.L.equals(status)) {
+			val = "Loss";
+		}
+
+		return val;
 	}
 
 }
