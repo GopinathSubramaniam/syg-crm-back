@@ -3,9 +3,10 @@ package com.syg.crm.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.syg.crm.enums.Operation;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.ManyToOne;
 import lombok.ToString;
 
@@ -18,10 +19,10 @@ public class LeadHistory extends MasterEntity {
 	@Column(columnDefinition = "text")
 	private String value;
 
-	@Column(length = 1)
+	@Enumerated(EnumType.STRING)
 	private Operation operation;
 
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne
 	private Lead lead;
 
 	public String getName() {
