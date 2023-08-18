@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.syg.crm.dto.AppDTO;
 import com.syg.crm.dto.TaskDTO;
 import com.syg.crm.model.Task;
+import com.syg.crm.model.TaskComment;
 import com.syg.crm.service.AppService;
+import com.syg.crm.service.TaskCommentService;
 import com.syg.crm.service.TaskService;
 import com.syg.crm.util.PageRes;
 import com.syg.crm.util.Res;
@@ -32,12 +34,23 @@ public class TaskAdapter {
 	@Autowired
 	private TaskService taskService;
 
+	@Autowired
+	private TaskCommentService taskCommentService;
+
 	@PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 	public Res create(@RequestHeader(value = "auth") String auth, @RequestBody Task task) {
 		AppDTO appDTO = appService.getLoggedInUser(auth);
 		task = taskService.create(appDTO, task);
 		Res res = new Res(true, 200);
 		res.setData(task);
+		return res;
+	}
+
+	@PostMapping(value = "/comment", produces = MediaType.APPLICATION_JSON_VALUE)
+	public Res createComment(@RequestBody TaskComment comment) {
+		comment = taskCommentService.create(comment);
+		Res res = new Res(true, 200);
+		res.setData(comment);
 		return res;
 	}
 
@@ -51,8 +64,8 @@ public class TaskAdapter {
 		PageRes res = taskService.findAll(appDTO, perPage, pageNo, searchTxt, status, priority, startDate, endDate);
 		return res;
 	}
-	
-	@GetMapping(path="/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+
+	@GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Res findOne(@RequestHeader(value = "auth") String auth, @PathVariable Long id) {
 		AppDTO appDTO = appService.getLoggedInUser(auth);
 		TaskDTO t = taskService.findOne(appDTO, id);

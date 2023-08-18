@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.syg.crm.model.Lead;
 import com.syg.crm.model.Task;
+import com.syg.crm.model.TaskComment;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +16,7 @@ import lombok.ToString;
 public class TaskDTO {
 	
 	private Task task;
+	private List<TaskComment> comments;
 	private List<Lead> leads;
 
 }

@@ -22,7 +22,6 @@ public class AuditorResolver implements AuditorAware<String> {
 		String auth = request.getHeader("auth");
 
 		String userName = Util.getLoggedInUserName(auth);
-		System.out.println("Auth = " + userName);
 
 		return Optional.of(userName);
 	}

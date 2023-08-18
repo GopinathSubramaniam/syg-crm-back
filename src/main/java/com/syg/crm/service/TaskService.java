@@ -16,6 +16,8 @@ import com.syg.crm.enums.SeqType;
 import com.syg.crm.enums.UserType;
 import com.syg.crm.model.Lead;
 import com.syg.crm.model.Task;
+import com.syg.crm.model.TaskComment;
+import com.syg.crm.repository.TaskCommentRepository;
 import com.syg.crm.repository.TaskRepository;
 import com.syg.crm.util.PageRes;
 import com.syg.crm.util.Util;
@@ -28,7 +30,10 @@ public class TaskService {
 
 	@Autowired
 	private TaskRepository taskRepository;
-	
+
+	@Autowired
+	private TaskCommentRepository taskCommentRepository;
+
 	@Autowired
 	private LeadService leadService;
 
@@ -84,22 +89,28 @@ public class TaskService {
 
 	public TaskDTO findOne(AppDTO appDto, Long id) {
 		TaskDTO dto = new TaskDTO();
-		
+
 		Task task = taskRepository.findById(id).get();
 		dto.setTask(task);
-		
+
 		// <> Get leads and set leads in task list
-		if(task.getLeadIds() != null) {
+		if (task.getLeadIds() != null) {
 			String[] leadStrArr = task.getLeadIds().split(",");
 			List<Long> leadIds = new ArrayList<>();
 			for (String leadId : leadStrArr) {
 				leadIds.add(Long.valueOf(leadId));
 			}
+
+			// Fetching Leads
 			List<Lead> leads = leadService.findAllByLeadIds(leadIds);
 			dto.setLeads(leads);
 		}
 		// </> Get leads and set leads in task list
-		
+
+		// Fetching comments
+		List<TaskComment> comments = taskCommentRepository.findAllByTaskId(task.getId());
+		dto.setComments(comments);
+
 		return dto;
 	}
 
