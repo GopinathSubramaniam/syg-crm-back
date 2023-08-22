@@ -12,11 +12,14 @@ import org.springframework.stereotype.Service;
 
 import com.syg.crm.dto.AppDTO;
 import com.syg.crm.dto.TaskDTO;
+import com.syg.crm.enums.Operation;
+import com.syg.crm.enums.Screen;
 import com.syg.crm.enums.SeqType;
 import com.syg.crm.enums.UserType;
 import com.syg.crm.model.Lead;
 import com.syg.crm.model.Task;
 import com.syg.crm.model.TaskComment;
+import com.syg.crm.model.UserHistory;
 import com.syg.crm.repository.TaskCommentRepository;
 import com.syg.crm.repository.TaskRepository;
 import com.syg.crm.util.PageRes;
@@ -37,25 +40,43 @@ public class TaskService {
 	@Autowired
 	private LeadService leadService;
 
+	@Autowired
+	private UserHistoryService userHistoryService;
+
 	public Task create(AppDTO appDTO, Task task) {
-		Task t = new Task();
-		if (task.getId() != null) {
 
-			t = taskRepository.findById(task.getId()).get();
-			t.setSubject(task.getSubject());
-			t.setDescription(task.getDescription());
-			t.setStartDate(task.getStartDate());
-			t.setDueDate(task.getDueDate());
-			t.setEndDate(task.getEndDate());
-			t.setPriority(task.getPriority());
-			t.setStatus(task.getStatus());
-			t.setLeadIds(task.getLeadIds());
+		try {
+			UserHistory uh = null;
 
-			task = taskRepository.saveAndFlush(t);
-		} else {
-			task.setTaskNum(appService.getSeqNum(SeqType.TA));
-			task.setUserDetail(appDTO.getUserDetail());
-			task = taskRepository.saveAndFlush(task);
+			if (task.getId() != null) {
+				Task t = taskRepository.findById(task.getId()).get();
+				uh = new Task().getModified(t, task);
+
+				if (uh != null) {
+					t.setSubject(task.getSubject());
+					t.setDescription(task.getDescription());
+					t.setStartDate(task.getStartDate());
+					t.setDueDate(task.getDueDate());
+					t.setEndDate(task.getEndDate());
+					t.setPriority(task.getPriority());
+					t.setStatus(task.getStatus());
+					t.setLeadIds(task.getLeadIds());
+
+					task = taskRepository.saveAndFlush(t);
+				}
+			} else {
+				task.setTaskNum(appService.getSeqNum(SeqType.TA));
+				task.setUserDetail(appDTO.getUserDetail());
+				task = taskRepository.saveAndFlush(task);
+
+				uh = new UserHistory(task.getId(), "New Task", task.getSubject(), Screen.T, Operation.I);
+			}
+
+			if (uh != null)
+				userHistoryService.create(uh);
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		return task;
@@ -107,9 +128,13 @@ public class TaskService {
 		}
 		// </> Get leads and set leads in task list
 
-		// Fetching comments
+		// Fetching task comments
 		List<TaskComment> comments = taskCommentRepository.findAllByTaskId(task.getId());
 		dto.setComments(comments);
+
+		// Fetching task histories
+		List<UserHistory> histories = userHistoryService.findAll(id, Screen.T);
+		dto.setHistories(histories);
 
 		return dto;
 	}

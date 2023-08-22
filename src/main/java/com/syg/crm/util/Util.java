@@ -39,6 +39,19 @@ public class Util {
 		return formattedDate;
 	}
 
+	public static String formatDate(Date date) {
+		String formattedDate = null;
+		try {
+			if (date != null)
+				formattedDate = new SimpleDateFormat("yyyy-MM-dd").format(date);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return formattedDate;
+	}
+
 	public static String toString(Object obj) throws Exception {
 		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 		String json = ow.writeValueAsString(obj);

@@ -14,13 +14,14 @@ import com.syg.crm.dto.AppDTO;
 import com.syg.crm.dto.LeadDTO;
 import com.syg.crm.enums.LeadStatus;
 import com.syg.crm.enums.Operation;
+import com.syg.crm.enums.Screen;
 import com.syg.crm.enums.UserType;
 import com.syg.crm.model.Lead;
-import com.syg.crm.model.LeadHistory;
 import com.syg.crm.model.Task;
-import com.syg.crm.repository.LeadHistoryRepository;
+import com.syg.crm.model.UserHistory;
 import com.syg.crm.repository.LeadRepository;
 import com.syg.crm.repository.TaskRepository;
+import com.syg.crm.repository.UserHistoryRepository;
 import com.syg.crm.util.PageRes;
 import com.syg.crm.util.Util;
 
@@ -31,17 +32,17 @@ public class LeadService {
 	private LeadRepository leadRepository;
 
 	@Autowired
-	private LeadHistoryRepository leadHistoryRepository;
+	private TaskRepository taskRepository;
 
 	@Autowired
-	private TaskRepository taskRepository;
+	private UserHistoryRepository userHistoryRepository;
 
 	public Lead create(AppDTO appDTO, Lead lead) {
 
 		try {
-			LeadHistory leadHistory = new LeadHistory();
-			leadHistory.setValue(Util.toString(lead));
-			leadHistory.setName("JSON");
+			UserHistory uh = new UserHistory(Screen.L);
+			uh.setField("JSON");
+			uh.setValue(Util.toString(lead));
 
 			Lead l = new Lead();
 			if (lead.getId() != null) {
@@ -66,15 +67,15 @@ public class LeadService {
 
 				lead = leadRepository.saveAndFlush(l);
 
-				leadHistory.setOperation(Operation.I);
+				uh.setOperation(Operation.U);
 			} else {
 				lead.setCreatedUserDetail(appDTO.getUserDetail());
 				lead = leadRepository.saveAndFlush(lead);
-				leadHistory.setOperation(Operation.U);
+				uh.setOperation(Operation.I);
 			}
 
-			leadHistory.setLead(lead);
-			leadHistoryRepository.saveAndFlush(leadHistory);
+			uh.setDataId(lead.getId());
+			userHistoryRepository.saveAndFlush(uh);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -117,47 +118,45 @@ public class LeadService {
 	}
 
 	public void deleteInBatch(List<Long> ids) {
-
-		leadHistoryRepository.deleteAllByLeadIdIn(ids);
 		leadRepository.deleteAllByIdInBatch(ids);
 	}
 
 	public void updateStatusInBulk(List<Long> ids, LeadStatus status) {
 
 		List<Lead> leads = leadRepository.findAllById(ids);
-		List<LeadHistory> histories = new ArrayList<>();
+		List<UserHistory> histories = new ArrayList<>();
 
 		for (Lead lead : leads) {
 			lead.setStatus(status);
 
-			LeadHistory leadHistory = new LeadHistory();
-			leadHistory.setValue(Util.getLeadStatusAbbr(status));
-			leadHistory.setName("Status");
-			leadHistory.setOperation(Operation.U);
-			leadHistory.setLead(lead);
-			histories.add(leadHistory);
+			UserHistory uh = new UserHistory(Screen.L);
+			uh.setField("Status");
+			uh.setValue(Util.getLeadStatusAbbr(status));
+			uh.setOperation(Operation.U);
+			uh.setDataId(lead.getId());
+			histories.add(uh);
 		}
 
 		leadRepository.saveAllAndFlush(leads);
-		leadHistoryRepository.saveAllAndFlush(histories);
+		userHistoryRepository.saveAllAndFlush(histories);
 	}
 
 	public void updateTags(List<Long> leadIds, String tags) {
 		List<Lead> leads = leadRepository.findAllById(leadIds);
-		List<LeadHistory> histories = new ArrayList<>();
+		List<UserHistory> histories = new ArrayList<>();
 
 		for (Lead lead : leads) {
 			lead.setTags(tags);
 
-			LeadHistory leadHistory = new LeadHistory();
-			leadHistory.setName("Tags");
-			leadHistory.setValue(tags);
-			leadHistory.setOperation(Operation.U);
-			leadHistory.setLead(lead);
-			histories.add(leadHistory);
+			UserHistory uh = new UserHistory(Screen.L);
+			uh.setField("Tags");
+			uh.setValue(tags);
+			uh.setOperation(Operation.U);
+			uh.setDataId(lead.getId());
+			histories.add(uh);
 		}
 		leadRepository.saveAllAndFlush(leads);
-		leadHistoryRepository.saveAllAndFlush(histories);
+		userHistoryRepository.saveAllAndFlush(histories);
 	}
 
 	public List<Lead> search(String searchTxt) {
@@ -181,8 +180,8 @@ public class LeadService {
 			List<Task> tasks = taskRepository.findByLeadIds(leadId.toString());
 			dto.setTasks(tasks);
 
-			List<LeadHistory> leadHistoryList = leadHistoryRepository.findAllByLeadId(l.getId());
-			dto.setHistory(leadHistoryList);
+			List<UserHistory> histories = userHistoryRepository.findAllByDataIdAndScreen(l.getId(), Screen.L);
+			dto.setHistory(histories);
 
 		}
 		return dto;
